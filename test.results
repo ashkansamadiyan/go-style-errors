@@ -1,0 +1,70 @@
+
+> go-errors@1.0.0 test
+> vitest run
+
+
+ RUN  v3.0.7 /home/wint/projects/ts/go-errors
+
+ ❯ tests/index.test.ts (19 tests | 2 failed) 20ms
+   ✓ goSync > returns value when no error
+   ✓ goSync > handles thrown errors
+   ✓ goSync > handles non-Error objects thrown
+   ✓ goSync > handles undefined return
+   ✓ goSync > handles null return
+   ✓ goSync > handles custom error types
+   × goSync > handles thrown objects 10ms
+     → expected '[object Object]' to be '{"foo":"bar"}' // Object.is equality
+   ✓ goAsync > resolves successful promises
+   ✓ goAsync > handles rejected promises
+   ✓ goAsync > handles async undefined return
+   ✓ goAsync > handles async null return
+   ✓ goAsync > handles rejected non-Error objects
+   × goAsync > handles rejected objects 1ms
+     → expected '[object Object]' to be '{"foo":"bar"}' // Object.is equality
+   ✓ goAsync > handles custom error types in async
+   ✓ go > handles sync functions
+   ✓ go > handles async functions
+   ✓ go > handles sync errors
+   ✓ go > handles async errors
+   ✓ go > type inference works correctly
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/index.test.ts > goSync > handles thrown objects
+AssertionError: expected '[object Object]' to be '{"foo":"bar"}' // Object.is equality
+
+Expected: "{"foo":"bar"}"
+Received: "[object Object]"
+
+ ❯ tests/index.test.ts:63:26
+     61|     expect(result).toBeNull();
+     62|     expect(err).toBeInstanceOf(Error);
+     63|     expect(err?.message).toBe('{"foo":"bar"}');
+       |                          ^
+     64|   });
+     65| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  tests/index.test.ts > goAsync > handles rejected objects
+AssertionError: expected '[object Object]' to be '{"foo":"bar"}' // Object.is equality
+
+Expected: "{"foo":"bar"}"
+Received: "[object Object]"
+
+ ❯ tests/index.test.ts:105:26
+    103|     expect(result).toBeNull();
+    104|     expect(err).toBeInstanceOf(Error);
+    105|     expect(err?.message).toBe('{"foo":"bar"}');
+       |                          ^
+    106|   });
+    107|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 17 passed (19)
+   Start at  08:58:05
+   Duration  390ms (transform 73ms, setup 0ms, collect 77ms, tests 20ms, environment 0ms, prepare 85ms)
+

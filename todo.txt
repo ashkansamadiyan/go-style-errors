@@ -1,0 +1,99 @@
+TODO: Improvements for go-errors library
+
+1. Add Type Safety Helper Functions
+   - Implement isOk<T, E>(result: Result<T, E>): result is [T, null]
+   - Implement isErr<T, E>(result: Result<T, E>): result is [null, E]
+   Example:
+   ```typescript
+   export function isOk<T, E>(result: Result<T, E>): result is [T, null] {
+       return result[1] === null;
+   }
+   ```
+
+2. Add Result Unwrap Methods
+   - Implement unwrap<T, E>(result: Result<T, E>): T
+   - Implement unwrapOr<T, E>(result: Result<T, E>, defaultValue: T): T
+   - Implement unwrapErr<T, E>(result: Result<T, E>): E
+   Example:
+   ```typescript
+   export function unwrap<T, E>(result: Result<T, E>): T {
+       if (isOk(result)) return result[0];
+       throw result[1];
+   }
+   ```
+
+3. Add Async Timeout Support
+   - Implement goAsyncWithTimeout<T, E>
+   - Add timeout parameter to main go function for async cases
+   Example:
+   ```typescript
+   export async function goAsyncWithTimeout<T, E = Error>(
+       promise: Promise<T>, 
+       timeoutMs: number
+   ): Promise<Result<T, E>>
+   ```
+
+4. Add Transform Methods
+   - Implement map<T, U, E>(result: Result<T, E>, fn: (value: T) => U): Result<U, E>
+   - Implement mapErr<T, E, F>(result: Result<T, E>, fn: (err: E) => F): Result<T, F>
+   - Add chain/flatMap for monadic operations
+
+5. Improve Error Normalization
+   - Enhanced object handling in normalizeError
+   - Better type preservation
+   - Stack trace preservation
+   Example:
+   ```typescript
+   export function normalizeError<E>(error: unknown): E {
+       if (error instanceof Error) return error as E;
+       if (typeof error === 'object' && error !== null) {
+           return new Error(JSON.stringify(error)) as E;
+       }
+       return new Error(String(error)) as E;
+   }
+   ```
+
+6. Add Async Utilities
+   - Implement goAll for handling multiple promises
+   - Add goRace for racing promises
+   - Add goCatch for catch-all promise handling
+   Example:
+   ```typescript
+   export async function goAll<T, E = Error>(promises: Promise<T>[]): Promise<Result<T[], E>>
+   ```
+
+7. Documentation Improvements
+   - Add JSDoc comments for all functions
+   - Create README.md with examples
+   - Add TypeScript playground examples
+   - Document common patterns and best practices
+
+8. Performance Optimizations
+   - Minimize allocations in hot paths
+   - Consider WeakMap for error caching
+   - Optimize type checking operations
+
+9. Additional Features
+   - Add support for async iterators
+   - Add support for cancellation tokens
+   - Add support for retry operations
+   - Add support for fallback values
+
+10. Testing Improvements
+    - Add performance benchmarks
+    - Add property-based testing
+    - Add stress testing for async operations
+    - Add memory leak tests
+
+11. Build and Package Improvements
+    - Add ESM support
+    - Add tree-shaking optimization
+    - Minimize bundle size
+    - Add source maps
+
+Priority order:
+1. Items 1-2 (Type Safety and Unwrap Methods)
+2. Items 3-4 (Async Timeout and Transform Methods)
+3. Items 5-6 (Error Handling and Async Utilities)
+4. Items 7-8 (Documentation and Performance)
+5. Items 9-11 (Additional Features, Testing, and Build) 

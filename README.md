@@ -160,6 +160,36 @@ async function processUserData(userId: string) {
 }
 ```
 
+## Edge Cases
+
+The library handles various edge cases gracefully:
+
+1. **Circular References**: Objects with circular references are handled gracefully with descriptive error messages:
+   ```typescript
+   const circular = { foo: 'bar' };
+   circular.self = circular;
+   const [result, err] = go(() => circular);
+   // err.message will contain information about the circular structure
+   ```
+
+2. **Special Objects**: Special JavaScript objects are properly stringified:
+   ```typescript
+   // RegExp
+   const [_, regexErr] = go(() => { throw /test/gi; });
+   console.log(regexErr.message); // "/test/gi"
+
+   // Date
+   const [_, dateErr] = go(() => { throw new Date(); });
+   // Preserves date format in error message
+   ```
+
+3. **Falsy Values**: Properly handles falsy values (undefined, null, 0, false, ''):
+   ```typescript
+   const [result, err] = go(() => false);
+   console.log(result === false); // true
+   console.log(err === null); // true
+   ```
+
 ## API Reference
 
 ### Core Functions

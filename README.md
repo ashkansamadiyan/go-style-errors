@@ -51,6 +51,42 @@ if (err) {
 }
 ```
 
+## Why Arrow Functions?
+
+You might wonder why we use `go(() => someFunc())` instead of `go(someFunc())`. Here's why:
+
+1. **Error Capturing**: Using `go(someFunc())` would execute `someFunc` immediately before `go` can catch any errors:
+```typescript
+// ❌ WRONG: Error throws before go() can catch it
+const [result, error] = go(divide(10, 0));
+
+// ✅ CORRECT: Error is properly caught
+const [result, error] = go(() => divide(10, 0));
+```
+
+2. **Delayed Execution**: The arrow function `() =>` ensures the code runs at the right time:
+```typescript
+// This allows setup code and multiple operations
+const [result, error] = go(() => {
+  const config = loadConfig();  // setup
+  return processData(config);   // main operation
+});
+```
+
+3. **Context & Arguments**: Arrow functions let you pass arguments and maintain context:
+```typescript
+function divide(a: number, b: number) {
+  if (b === 0) throw new Error("Division by zero");
+  return a / b;
+}
+
+// ❌ INFLEXIBLE: Can't pass arguments
+const [result1, error1] = go(divide);
+
+// ✅ CORRECT: Can pass arguments
+const [result2, error2] = go(() => divide(10, 2));
+```
+
 ## Usage Examples
 
 ### Basic Error Handling

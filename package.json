@@ -1,6 +1,6 @@
 {
   "name": "go-errors",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Go-style error handling for TypeScript with full type safety, async, and fetch support",
   "type": "module",
   "main": "./dist/src/index.js",

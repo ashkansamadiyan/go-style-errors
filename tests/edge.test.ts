@@ -37,8 +37,8 @@ describe("edge cases - complex objects", () => {
     });
     expect(result).toBeNull();
     expect(err).toBeInstanceOf(Error);
-    // JSON.stringify will throw on circular references, so we expect a fallback error message
-    expect(err?.message).toContain("Converting circular structure to JSON");
+    // JSON.stringify will throw on circular references
+    expect(err?.message).toBe("JSON.stringify cannot serialize cyclic structures.");
   });
 });
 

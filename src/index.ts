@@ -2,6 +2,7 @@
 import type { Result } from "./types";
 import { goSync } from "./sync";
 import { goAsync } from "./async";
+import { goFetch } from "./fetch";
 
 /**
  * A unified function for handling both synchronous and asynchronous operations in a Go-style error handling pattern.
@@ -42,3 +43,4 @@ export function go<T, E = Error>(
 export * from "./sync";
 export * from "./async";
 export * from "./types";
+export * from "./fetch";

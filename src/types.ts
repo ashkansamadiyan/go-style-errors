@@ -1,17 +1,24 @@
 /**
- * Represents a Go-style result tuple that contains either a value or an error, but never both.
- * Similar to Rust's Result type or Haskell's Either type.
+ * Represents a Result tuple that contains either a value or an error.
+ * This is the base type used internally.
+ * 
+ * @template T - The type of the successful value
+ * @template E - The type of the error, defaults to Error
+ */
+export type Result<T, E = Error> = [T | null, E | null];
+
+/**
+ * Represents a strict Go-style result tuple that contains either a value or an error, but never both.
+ * This is the recommended type for public APIs.
  * 
  * @template T - The type of the successful value
  * @template E - The type of the error, defaults to Error
  * 
  * @example
  * ```typescript
- * // Success case: [value, null]
- * const success: Result<number> = [42, null];
- * 
- * // Error case: [null, error]
- * const error: Result<number> = [null, new Error("failed")];
+ * type ApiResult = GoResult<UserData, ApiError>;
+ * // is equivalent to:
+ * type ApiResult = readonly [UserData, null] | readonly [null, ApiError];
  * ```
  */
-export type Result<T, E = Error> = [T, null] | [null, E];
+export type GoResult<T, E = Error> = readonly [T, null] | readonly [null, E];

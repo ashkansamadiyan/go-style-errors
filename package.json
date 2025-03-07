@@ -1,7 +1,7 @@
 {
   "name": "go-errors",
-  "version": "1.0.3",
-  "description": "Go-style error handling for TypeScript with full type safety and async support",
+  "version": "1.2.0",
+  "description": "Go-style error handling for TypeScript with full type safety, async, and fetch support",
   "type": "module",
   "main": "./dist/src/index.js",
   "module": "./dist/esm/index.js",
@@ -9,9 +9,8 @@
   "typings": "./dist/src/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/src/index.d.ts",
       "import": {
-        "types": "./dist/esm/index.d.ts",
+        "types": "./dist/src/index.d.ts",
         "default": "./dist/esm/index.js"
       },
       "require": {
@@ -45,7 +44,11 @@
     "promise",
     "result-type",
     "exception-handling",
-    "error-monad"
+    "error-monad",
+    "fetch",
+    "http-client",
+    "api-client",
+    "type-safe-fetch"
   ],
   "author": "Ashkan Samadiyan",
   "license": "MIT",
@@ -56,7 +59,7 @@
   "bugs": {
     "url": "https://github.com/ashkansamadiyan/go-style-errors/issues"
   },
-  "homepage": "https://github.com/ashkansamadiyan/go-style-errors#readme",
+  "homepage": "https://go-errors-docs.vercel.app/",
   "devDependencies": {
     "@types/node": "^22.13.5",
     "typescript": "^5.7.3",

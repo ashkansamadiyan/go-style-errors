@@ -1,28 +1,24 @@
 # go-errors
 
-[![npm version](https://badge.fury.io/js/go-errors.svg)](https://badge.fury.io/js/go-errors)
-[![TypeScript](https://badges.frapsoft.com/typescript/code/typescript.svg?v=101)](https://github.com/ellerbrock/typescript-badges/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-
-A TypeScript library that brings Go-style error handling to JavaScript/TypeScript. Handle errors elegantly without try-catch blocks, using a functional approach that's both type-safe and intuitive.
+A lightweight, type-safe TypeScript library that brings Go-style error handling to JavaScript/TypeScript. Say goodbye to try-catch blocks and hello to elegant, functional error handling! This library brings the simplicity and elegance of Go's error handling pattern to your TypeScript/JavaScript projects.
 
 ## Features
 
-- 🎯 **Type-safe** error handling with full TypeScript support
-- 🔄 **Go-style** result tuples `[value, error]`
-- ⚡ **Zero dependencies** and lightweight
-- 🔀 **Unified API** for both synchronous and asynchronous operations
-- 🛡️ **Predictable error handling** without try-catch blocks
-- 📦 **Tree-shakeable** and optimized for bundle size
+- 🎯 **Type-safe**: Full TypeScript support with precise type inference
+- 🔄 **Unified API**: Same pattern for both sync and async operations
+- 🌐 **Fetch Support**: Built-in wrapper for fetch operations with transformers
+- 🪶 **Lightweight**: Zero dependencies, minimal overhead
+- 🔒 **Immutable**: Results are readonly tuples
+- 🎨 **Flexible**: Support for custom error types
+- 📦 **Tree-shakeable**: Only import what you need
+- 🔍 **Predictable**: No more try-catch spaghetti code
+- 🚀 **Fast**: Minimal runtime overhead
+- 💡 **Intuitive**: Familiar pattern for Go developers
 
 ## Installation
 
 ```bash
-npm install go-errors
-# or
-yarn add go-errors
-# or
-pnpm add go-errors
+bun add go-errors
 ```
 
 ## Quick Start
@@ -31,262 +27,337 @@ pnpm add go-errors
 import { go } from 'go-errors';
 
 // Synchronous usage
-const [value, error] = go(() => {
-  // Your code that might throw
-  return "success";
+let [value, err] = go(() => {
+  if (Math.random() > 0.5) throw new Error('Bad luck!');
+  return 42;
 });
 
-if (error) {
-  console.error("Something went wrong:", error.message);
+if (err) {
+  console.error('Something went wrong:', err);
 } else {
-  console.log("Got value:", value);
+  console.log('Got value:', value);
 }
 
 // Asynchronous usage
-const [data, err] = await go(fetch("https://api.example.com/data"));
+let [data, err] = await go(fetch('https://api.example.com/data'));
+
 if (err) {
-  console.error("API call failed:", err.message);
+  console.error('Failed to fetch:', err);
 } else {
-  console.log("API data:", data);
+  console.log('Got data:', data);
 }
 ```
 
-## Why Arrow Functions?
+## Core Concepts
 
-You might wonder why we use `go(() => someFunc())` instead of `go(someFunc())`. Here's why:
+### The Result Type
 
-1. **Error Capturing**: Using `go(someFunc())` would execute `someFunc` immediately before `go` can catch any errors:
+The library uses a tuple-based Result type that's similar to Go's multiple return values:
+
 ```typescript
-// ❌ WRONG: Error throws before go() can catch it
-const [result, error] = go(divide(10, 0));
-
-// ✅ CORRECT: Error is properly caught
-const [result, error] = go(() => divide(10, 0));
+type Result<T, E = Error> = readonly [T, null] | readonly [null, E];
 ```
 
-2. **Delayed Execution**: The arrow function `() =>` ensures the code runs at the right time:
+This means a function will always return either:
+- `[value, null]` for success
+- `[null, error]` for failure
+
+### Variable Declaration Best Practice
+
+Following Go's convention, we recommend using `let` instead of `const` for result declarations. This allows you to reuse the error variable name (typically `err`) throughout your code, just like in Go:
+
 ```typescript
-// This allows setup code and multiple operations
-const [result, error] = go(() => {
-  const config = loadConfig();  // setup
-  return processData(config);   // main operation
+// ✅ Recommended: Using let
+let [value, err] = go(() => someOperation());
+if (err) return handleError(err);
+
+// Another operation using the same err variable
+let [result, err] = go(() => anotherOperation());
+if (err) return handleError(err);
+
+// ❌ Not recommended: Using const requires unique variable names
+const [value1, error1] = go(() => someOperation());
+if (error1) return handleError(error1);
+
+const [value2, error2] = go(() => anotherOperation());
+if (error2) return handleError(error2);
+```
+
+### Main Functions
+
+#### 1. `go<T, E = Error>`
+
+The main function that handles both synchronous and asynchronous operations:
+
+```typescript
+// Synchronous
+let [value, err] = go(() => someOperation());
+
+// Asynchronous
+let [value, err] = await go(somePromise);
+
+// With custom error types
+let [value, err] = go<number, CustomError>(() => validate(input));
+```
+
+#### 2. `goFetch<T, E = string>`
+
+A powerful fetch wrapper with built-in error handling and transformation capabilities:
+
+```typescript
+interface User {
+  id: number;
+  name: string;
+}
+
+// Basic usage
+let [user, err] = await goFetch<User>('https://api.example.com/user/1');
+
+// Advanced usage with options
+let [user, err] = await goFetch<User>('https://api.example.com/user/1', {
+  // Request options (extends Fetch API options)
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({ name: 'John' }),
+  
+  // Response transformation
+  responseTransformer: (data: unknown) => ({
+    ...data as User,
+    lastFetched: new Date()
+  }),
+  
+  // Error transformation
+  errorTransformer: (error: unknown) => {
+    if (error instanceof Error) {
+      return `API Error: ${error.message}`;
+    }
+    return 'Unknown error occurred';
+  }
 });
 ```
 
-3. **Context & Arguments**: Arrow functions let you pass arguments and maintain context:
-```typescript
-function divide(a: number, b: number) {
-  if (b === 0) throw new Error("Division by zero");
-  return a / b;
-}
+##### goFetch Options
 
-// ❌ INFLEXIBLE: Can't pass arguments
-const [result1, error1] = go(divide);
-
-// ✅ CORRECT: Can pass arguments
-const [result2, error2] = go(() => divide(10, 2));
-```
-
-## Usage Examples
-
-### Basic Error Handling
+The `goFetch` function accepts an optional options object that extends the standard Fetch API options:
 
 ```typescript
-import { go } from 'go-errors';
-
-function divide(a: number, b: number): number {
-  if (b === 0) throw new Error("Division by zero");
-  return a / b;
-}
-
-// Synchronous error handling
-const [result, err] = go(() => divide(10, 0));
-if (err) {
-  console.log("Failed to divide:", err.message); // "Failed to divide: Division by zero"
-} else {
-  console.log("Result:", result);
+interface GoFetchOptions<T = any, E = string> extends RequestInit {
+  // Transform the response data before returning
+  responseTransformer?: (data: unknown) => T;
+  
+  // Transform errors into your preferred format
+  errorTransformer?: (error: unknown) => E;
+  
+  // All standard fetch options are supported
+  method?: string;
+  headers?: HeadersInit;
+  body?: BodyInit;
+  mode?: RequestMode;
+  credentials?: RequestCredentials;
+  cache?: RequestCache;
+  // ... and more
 }
 ```
 
-### Async/Promise Handling
-
-```typescript
-import { go } from 'go-errors';
-
-async function fetchUserData(id: string) {
-  const [response, fetchError] = await go(
-    fetch(`https://api.example.com/users/${id}`)
-  );
-  
-  if (fetchError) {
-    return [null, fetchError] as const;
-  }
-  
-  const [data, parseError] = await go(response.json());
-  if (parseError) {
-    return [null, parseError] as const;
-  }
-  
-  return [data, null] as const;
-}
-
-// Usage
-async function main() {
-  const [userData, error] = await fetchUserData("123");
-  if (error) {
-    console.error("Failed to fetch user:", error.message);
-    return;
-  }
-  console.log("User data:", userData);
-}
-```
+## Advanced Usage
 
 ### Custom Error Types
 
+You can specify custom error types for more precise error handling:
+
 ```typescript
-import { go } from 'go-errors';
-
 class ValidationError extends Error {
-  constructor(message: string) {
+  constructor(public field: string, message: string) {
     super(message);
-    this.name = 'ValidationError';
   }
 }
 
-function validateUser(user: unknown) {
-  if (typeof user !== 'object' || !user) {
-    throw new ValidationError('Invalid user object');
-  }
-  return user;
-}
+let [value, err] = go<number, ValidationError>(() => {
+  if (input < 0) throw new ValidationError('input', 'Must be positive');
+  return input * 2;
+});
 
-const [user, error] = go<unknown, ValidationError>(() => 
-  validateUser({ name: 'John' })
-);
-
-if (error) {
-  if (error instanceof ValidationError) {
-    console.log("Validation failed:", error.message);
-  } else {
-    console.log("Unknown error:", error.message);
-  }
+if (err) {
+  console.error(`Validation failed for ${err.field}: ${err.message}`);
 }
 ```
 
-### Working with Multiple Operations
+### Complex API Interactions
 
 ```typescript
-import { go } from 'go-errors';
+interface ApiResponse<T> {
+  data: T;
+  status: string;
+  metadata: {
+    timestamp: string;
+    version: string;
+  };
+}
 
+interface ApiError {
+  code: number;
+  message: string;
+  details?: string;
+}
+
+interface User {
+  id: number;
+  name: string;
+  email: string;
+}
+
+async function fetchUserData(userId: string) {
+  let [user, err] = await goFetch<ApiResponse<User>, ApiError>(
+    `https://api.example.com/user/${userId}`,
+    {
+      headers: {
+        'Authorization': 'Bearer token',
+      },
+      responseTransformer: (data: unknown) => {
+        const response = data as ApiResponse<User>;
+        // Add custom validation
+        if (!response.data.id) {
+          throw new Error('Invalid user data');
+        }
+        return response;
+      },
+      errorTransformer: (error: unknown) => {
+        if (error instanceof Error) {
+          return {
+            code: 500,
+            message: error.message,
+            details: error.stack
+          };
+        }
+        return {
+          code: 400,
+          message: 'Unknown error'
+        };
+      },
+    }
+  );
+
+  if (err) {
+    console.error(`API Error ${err.code}: ${err.message}`);
+    return [null, err] as const;
+  }
+
+  return [user.data, null] as const;
+}
+```
+
+### Error Handling Patterns
+
+#### Sequential Operations
+
+```typescript
 async function processUserData(userId: string) {
   // Fetch user
-  const [user, userError] = await go(fetchUser(userId));
-  if (userError) return [null, userError] as const;
+  let [user, err] = await goFetch<User>(`/api/users/${userId}`);
+  if (err) return [null, err] as const;
 
   // Fetch user's posts
-  const [posts, postsError] = await go(fetchUserPosts(userId));
-  if (postsError) return [null, postsError] as const;
+  let [posts, err] = await goFetch<Post[]>(`/api/users/${userId}/posts`);
+  if (err) return [null, err] as const;
 
   // Process everything
-  return [{
+  let [result, err] = go(() => ({
     user,
     posts,
     timestamp: new Date()
+  }));
+  
+  return [result, err] as const;
+}
+```
+
+#### Parallel Operations
+
+```typescript
+async function fetchUserDashboard(userId: string) {
+  // Fetch multiple resources in parallel
+  let [results, err] = await go(Promise.all([
+    goFetch<User>(`/api/users/${userId}`),
+    goFetch<Post[]>(`/api/users/${userId}/posts`),
+    goFetch<Activity[]>(`/api/users/${userId}/activity`)
+  ]));
+
+  if (err) return [null, err] as const;
+
+  const [[user, userErr], [posts, postsErr], [activity, activityErr]] = results;
+
+  // Check for individual errors
+  if (userErr || postsErr || activityErr) {
+    return [null, new Error('Failed to fetch some dashboard data')] as const;
+  }
+
+  return [{
+    user,
+    posts,
+    activity,
+    lastUpdated: new Date()
   }, null] as const;
 }
 ```
 
-## Edge Cases
-
-The library handles various edge cases gracefully:
-
-1. **Circular References**: Objects with circular references are handled gracefully with descriptive error messages:
-   ```typescript
-   const circular = { foo: 'bar' };
-   circular.self = circular;
-   const [result, err] = go(() => circular);
-   // err.message will contain information about the circular structure
-   ```
-
-2. **Special Objects**: Special JavaScript objects are properly stringified:
-   ```typescript
-   // RegExp
-   const [_, regexErr] = go(() => { throw /test/gi; });
-   console.log(regexErr.message); // "/test/gi"
-
-   // Date
-   const [_, dateErr] = go(() => { throw new Date(); });
-   // Preserves date format in error message
-   ```
-
-3. **Falsy Values**: Properly handles falsy values (undefined, null, 0, false, ''):
-   ```typescript
-   const [result, err] = go(() => false);
-   console.log(result === false); // true
-   console.log(err === null); // true
-   ```
-
-## API Reference
-
-### Core Functions
-
-#### `go<T, E = Error>(fn: () => T): Result<T, E>`
-#### `go<T, E = Error>(promise: Promise<T>): Promise<Result<T, E>>`
-
-The main function that handles both synchronous and asynchronous operations.
-
-```typescript
-// Sync
-const [value, error] = go(() => someOperation());
-
-// Async
-const [value, error] = await go(somePromise);
-```
-
-#### `goSync<T, E = Error>(fn: () => T): Result<T, E>`
-
-Specifically handles synchronous operations.
-
-```typescript
-const [value, error] = goSync(() => {
-  // synchronous code that might throw
-  return someValue;
-});
-```
-
-#### `goAsync<T, E = Error>(promise: Promise<T>): Promise<Result<T, E>>`
-
-Specifically handles asynchronous operations.
-
-```typescript
-const [value, error] = await goAsync(fetch('https://api.example.com'));
-```
-
-### Types
-
-```typescript
-type Result<T, E = Error> = [T, null] | [null, E];
-```
-
 ## Best Practices
 
-1. **Type Your Errors**: Always specify error types for better type safety:
+1. **Always Check for Errors First**
    ```typescript
-   const [value, error] = go<number, ValidationError>(() => validate(input));
+   let [data, err] = await go(fetchData());
+   if (err) {
+     // Handle error first
+     return handleError(err);
+   }
+   // Then work with data
+   processData(data);
    ```
 
-2. **Early Returns**: Use early returns with error checking:
+2. **Use Type Parameters for Better Type Safety**
    ```typescript
-   const [data, error] = await fetchData();
-   if (error) return [null, error] as const;
+   let [value, err] = go<number, CustomError>(() => validate(input));
    ```
 
-3. **Error Propagation**: Propagate errors up the call stack:
+3. **Avoid Nested Error Handling**
    ```typescript
-   function processData() {
-     const [data, error] = getData();
-     if (error) return [null, error] as const;
-     // process data
+   // Good
+   let [data, err] = await go(step1());
+   if (err) return handleError(err);
+   
+   let [result, err] = await go(step2(data));
+   if (err) return handleError(err);
+   
+   // Not recommended
+   let [data, err] = await go(step1());
+   if (!err) {
+     let [result, err] = await go(step2(data));
+     if (!err) {
+       // ...
+     }
+   }
+   ```
+
+4. **Use Consistent Error Types**
+   ```typescript
+   // Define your error types
+   type AppError = ValidationError | DatabaseError | NetworkError;
+
+   // Use them consistently
+   let [data, err] = go<Data, AppError>(() => processData());
+   ```
+
+5. **Propagate Errors Up**
+   ```typescript
+   function processData(): GoResult<ProcessedData, AppError> {
+     let [data, err] = getData();
+     if (err) return [null, err] as const;
+
+     let [processed, err] = go(() => transform(data));
+     if (err) return [null, err] as const;
+
+     return [processed, null] as const;
    }
    ```
 
@@ -302,13 +373,11 @@ Contributions are welcome! Please feel free to submit a Pull Request. For major 
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT License - see the [LICENSE](LICENSE) file for details.
 
-## Acknowledgments
+## Credits
 
-- Inspired by Go's error handling pattern
-- Built with TypeScript for type safety
-- Designed for modern JavaScript/TypeScript applications
+Created by Ashkan Samadiyan
 
 ---
 
